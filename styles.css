@@ -794,6 +794,27 @@ body.light-mode .rt-btn:hover { background: #f0f2f5; }
     display: flex; align-items: center; justify-content: center;
     transition: var(--pf-transition);
 }
+
+/* ========== SITE FOOTER ========== */
+.site-footer {
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 0.72rem;
+    color: #6b7a90;
+    border-top: 1px solid var(--pf-border);
+    background: var(--pf-panel);
+}
+.site-footer a {
+    color: var(--pf-accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+.site-footer a:hover { text-decoration: underline; }
+.site-footer p { margin: 0; }
+body.light-mode .site-footer {
+    color: #999;
+    border-top-color: #e0e0e0;
+}
 .rt-btn:hover { background: var(--pf-surface2); }
 .rt-divider { width: 1px; height: 20px; background: var(--pf-border); margin: 0 2px; }
 .rt-select {
