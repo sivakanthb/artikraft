@@ -475,6 +475,15 @@ body.light-mode .rt-btn:hover { background: #f0f2f5; }
     border-radius: 4px; min-height: 400px; position: relative;
     transition: width 0.3s ease; color: var(--nl-text, #333333);
 }
+.canvas * { color: inherit; }
+.canvas a { color: var(--nl-primary); }
+.canvas .nl-hero, .canvas .nl-hero * { color: #fff; }
+.canvas .nl-success-story, .canvas .nl-success-story * { color: #fff; }
+.canvas .nl-callout .callout-title { color: #92400e; }
+.canvas .nl-callout .callout-body { color: #78350f; }
+.canvas .nl-footer { color: #999; }
+.canvas .nl-footer .footer-author { color: var(--nl-primary); }
+.canvas .nl-footer .footer-bottom a { color: var(--nl-accent); }
 .canvas-empty {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 500px; padding: 60px 40px; text-align: center; color: #666;
