@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtiKraft — Newsletter Builder</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Merriweather:wght@400;700;900&family=Poppins:wght@300;400;500;600;700;800&family=Lora:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;700&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✎</text></svg>">
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <span class="logo-icon">✎</span>
+                <span class="logo-text">ArtiKraft</span>
+            </div>
+            <div class="topbar-divider"></div>
+            <input type="text" id="newsletterTitle" class="newsletter-title-input" value="" placeholder="Newsletter title...">
+        </div>
+        <div class="topbar-center">
+            <button class="topbar-btn" id="btnUndo" title="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 015 5v0a5 5 0 01-5 5H7"/><path d="M3 10l4-4M3 10l4 4"/></svg></button>
+            <button class="topbar-btn" id="btnRedo" title="Redo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10H11a5 5 0 00-5 5v0a5 5 0 005 5h6"/><path d="M21 10l-4-4M21 10l-4 4"/></svg></button>
+            <div class="topbar-divider"></div>
+            <button class="topbar-btn active" id="btnEditMode" title="Edit mode">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+            </button>
+            <button class="topbar-btn" id="btnPreviewMode" title="Preview mode">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview
+            </button>
+        </div>
+        <div class="topbar-right">
+            <button class="topbar-btn" id="btnSave" title="Save newsletter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+                Save
+            </button>
+            <button class="topbar-btn" id="btnLoad" title="Load newsletter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Load
+            </button>
+            <button class="topbar-btn" id="btnAutoGen" title="Auto-generate from raw data">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Auto-Generate
+            </button>
+            <div class="topbar-divider"></div>
+            <button class="topbar-btn theme-toggle-btn" id="btnThemeToggle" title="Toggle light/dark mode">
+                <span class="theme-icon-sun">☀️</span>
+                <span class="theme-icon-moon">🌙</span>
+            </button>
+            <div class="topbar-divider"></div>
+            <div class="export-dropdown">
+                <button class="topbar-btn" id="btnShare">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Share ▾
+                </button>
+                <div class="export-menu share-menu" id="shareMenu">
+                    <button class="export-option" data-share="preview">
+                        <span class="share-icon">🔍</span>
+                        <span class="share-text"><strong>Share page</strong><small>Open a full preview in a new tab</small></span>
+                    </button>
+                    <button class="export-option" data-share="copy-link">
+                        <span class="share-icon">🔗</span>
+                        <span class="share-text"><strong>Copy link to page</strong><small>Copy a shareable link to clipboard</small></span>
+                    </button>
+                    <button class="export-option" data-share="send-email">
+                        <span class="share-icon">✉️</span>
+                        <span class="share-text"><strong>Send to email</strong><small>Email the newsletter with summary</small></span>
+                    </button>
+                </div>
+            </div>
+            <div class="export-dropdown">
+                <button class="topbar-btn primary" id="btnExport">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Export ▾
+                </button>
+                <div class="export-menu" id="exportMenu">
+                    <button class="export-option" data-format="html-standalone">📄 Standalone HTML</button>
+                    <button class="export-option" data-format="pdf">📃 Download as PDF</button>
+                    <button class="export-option" data-format="html-sharepoint">🏢 SharePoint-Ready HTML</button>
+                    <button class="export-option" data-format="html-email">📧 Email-Safe HTML</button>
+                    <button class="export-option" data-format="clipboard">📋 Copy HTML to Clipboard</button>
+                    <button class="export-option" data-format="json">💾 Export as JSON Template</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="app-layout">
+        <!-- Sidebar re-open tabs (visible when collapsed) -->
+        <div class="sidebar-reopen sidebar-reopen-left" id="reopenLeft" title="Show Blocks panel">▶</div>
+        <div class="sidebar-reopen sidebar-reopen-right" id="reopenRight" title="Show Theme panel">◀</div>
+
+        <!-- Left Sidebar: Block Palette -->
+        <aside class="sidebar sidebar-left" id="sidebarLeft">
+            <div class="sidebar-header">
+                <h3>Blocks</h3>
+                <button class="sidebar-toggle" id="toggleLeft" title="Toggle sidebar">◀</button>
+            </div>
+            <div class="sidebar-content">
+                <!-- Template Picker -->
+                <div class="sidebar-section">
+                    <h4 class="section-label">Quick Start</h4>
+                    <button class="template-btn" id="btnTemplates">
+                        <span class="template-icon">📋</span>
+                        Choose Template
+                    </button>
+                </div>
+                <div class="sidebar-section">
+                    <h4 class="section-label">Layout</h4>
+                    <div class="block-grid">
+                        <div class="block-item" draggable="true" data-block="hero">
+                            <div class="block-preview hero-preview"></div>
+                            <span>Hero Banner</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="editorial">
+                            <div class="block-preview editorial-preview"></div>
+                            <span>Editorial</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="section-header">
+                            <div class="block-preview section-header-preview"></div>
+                            <span>Section Header</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="divider">
+                            <div class="block-preview divider-preview"></div>
+                            <span>Divider</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="spacer">
+                            <div class="block-preview spacer-preview"></div>
+                            <span>Spacer</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4 class="section-label">Content</h4>
+                    <div class="block-grid">
+                        <div class="block-item" draggable="true" data-block="text">
+                            <div class="block-preview text-preview"></div>
+                            <span>Text Block</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="image-text">
+                            <div class="block-preview image-text-preview"></div>
+                            <span>Image + Text</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="quote">
+                            <div class="block-preview quote-preview"></div>
+                            <span>Quote</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="callout">
+                            <div class="block-preview callout-preview"></div>
+                            <span>Callout Box</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4 class="section-label">Data & Metrics</h4>
+                    <div class="block-grid">
+                        <div class="block-item" draggable="true" data-block="kpi-cards">
+                            <div class="block-preview kpi-preview"></div>
+                            <span>KPI Cards</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="progress-bars">
+                            <div class="block-preview progress-preview"></div>
+                            <span>Progress Bars</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="stats-row">
+                            <div class="block-preview stats-preview"></div>
+                            <span>Stats Row</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="timeline">
+                            <div class="block-preview timeline-preview"></div>
+                            <span>Timeline</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4 class="section-label">Newsletter Sections</h4>
+                    <div class="block-grid">
+                        <div class="block-item" draggable="true" data-block="success-story">
+                            <div class="block-preview success-preview"></div>
+                            <span>Success Story</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="team-spotlight">
+                            <div class="block-preview team-preview"></div>
+                            <span>Team Spotlight</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="two-column">
+                            <div class="block-preview twocol-preview"></div>
+                            <span>Two Columns</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="three-column">
+                            <div class="block-preview threecol-preview"></div>
+                            <span>Three Columns</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="four-column">
+                            <div class="block-preview fourcol-preview"></div>
+                            <span>Four Columns</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="sidebar-layout">
+                            <div class="block-preview sidebar-layout-preview"></div>
+                            <span>Sidebar Layout</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4 class="section-label">Footer</h4>
+                    <div class="block-grid">
+                        <div class="block-item" draggable="true" data-block="footer">
+                            <div class="block-preview footer-preview"></div>
+                            <span>Footer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center: Canvas -->
+        <main class="canvas-wrapper" id="canvasWrapper">
+            <div class="canvas-toolbar">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOut">−</button>
+                    <span class="zoom-level" id="zoomLevel">100%</span>
+                    <button class="zoom-btn" id="zoomIn">+</button>
+                    <button class="zoom-btn" id="zoomFit">Fit</button>
+                </div>
+                <div class="canvas-dimensions">
+                    <select id="canvasWidth">
+                        <option value="600">Email (600px)</option>
+                        <option value="800" selected>Standard (800px)</option>
+                        <option value="960">Wide (960px)</option>
+                        <option value="1200">Full Width (1200px)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="canvas-scroll" id="canvasScroll">
+                <div class="canvas" id="canvas" style="width:800px">
+                    <div class="canvas-empty" id="canvasEmpty">
+                        <div class="empty-icon">✎</div>
+                        <h2>Start Building Your Newsletter</h2>
+                        <p>Drag blocks from the left panel, or choose a template to get started.</p>
+                        <div class="empty-actions">
+                            <button class="btn-start" id="btnStartTemplate">Choose a Template</button>
+                            <button class="btn-start btn-secondary" id="btnStartScratch">Start from Scratch</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Properties -->
+        <aside class="sidebar sidebar-right" id="sidebarRight">
+            <div class="sidebar-header">
+                <h3 id="propsTitle">Theme & Style</h3>
+                <button class="sidebar-toggle" id="toggleRight" title="Toggle sidebar">▶</button>
+            </div>
+            <div class="sidebar-content" id="propsPanel">
+                <!-- Theme Selector -->
+                <div class="sidebar-section" id="themeSection">
+                    <h4 class="section-label">Color Theme</h4>
+                    <div class="theme-grid" id="themeGrid">
+                        <!-- Themes injected by JS -->
+                    </div>
+                </div>
+                <!-- Custom Colors -->
+                <div class="sidebar-section" id="customColorsSection">
+                    <h4 class="section-label">Custom Colors</h4>
+                    <div class="color-row">
+                        <label>Primary</label>
+                        <input type="color" id="colorPrimary" value="#004E8C">
+                    </div>
+                    <div class="color-row">
+                        <label>Accent</label>
+                        <input type="color" id="colorAccent" value="#03787C">
+                    </div>
+                    <div class="color-row">
+                        <label>Background</label>
+                        <input type="color" id="colorBg" value="#FFFFFF">
+                    </div>
+                    <div class="color-row">
+                        <label>Text</label>
+                        <input type="color" id="colorText" value="#333333">
+                    </div>
+                    <div class="color-row">
+                        <label>Card BG</label>
+                        <input type="color" id="colorCardBg" value="#F5F7FA">
+                    </div>
+                </div>
+                <!-- Typography -->
+                <div class="sidebar-section">
+                    <h4 class="section-label">Typography</h4>
+                    <div class="prop-row">
+                        <label>Heading Font</label>
+                        <select id="fontHeading">
+                            <option value="'Inter', sans-serif">Inter</option>
+                            <option value="'Poppins', sans-serif">Poppins</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Raleway', sans-serif">Raleway</option>
+                            <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+                            <option value="'DM Sans', sans-serif">DM Sans</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Merriweather', serif">Merriweather</option>
+                            <option value="'Lora', serif">Lora</option>
+                            <option value="'Source Serif 4', serif">Source Serif</option>
+                            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <label>Body Font</label>
+                        <select id="fontBody">
+                            <option value="'Inter', sans-serif">Inter</option>
+                            <option value="'Poppins', sans-serif">Poppins</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Raleway', sans-serif">Raleway</option>
+                            <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+                            <option value="'DM Sans', sans-serif">DM Sans</option>
+                            <option value="'Lora', serif">Lora</option>
+                            <option value="'Source Serif 4', serif">Source Serif</option>
+                            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <label>Base Size</label>
+                        <input type="range" id="fontSize" min="12" max="20" value="16">
+                        <span id="fontSizeVal">16px</span>
+                    </div>
+                </div>
+                <!-- Newsletter Info -->
+                <div class="sidebar-section">
+                    <h4 class="section-label">Newsletter Info</h4>
+                    <div class="prop-row">
+                        <label>Edition</label>
+                        <input type="text" id="infoEdition" value="1st Edition" class="prop-input">
+                    </div>
+                    <div class="prop-row">
+                        <label>Quarter</label>
+                        <input type="text" id="infoQuarter" value="" class="prop-input">
+                    </div>
+                    <div class="prop-row">
+                        <label>Org / Team</label>
+                        <input type="text" id="infoOrg" value="Newsletter Name" class="prop-input">
+                    </div>
+                </div>
+                <!-- Block Properties (shown when a block is selected) -->
+                <div class="sidebar-section" id="blockPropsSection" style="display:none">
+                    <h4 class="section-label">Block Properties</h4>
+                    <div id="blockPropsContent">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal-overlay" id="templateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Choose a Template</h2>
+                <button class="modal-close" id="closeTemplateModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-grid" id="templateGrid">
+                    <!-- Templates injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rich Text Toolbar (floating) -->
+    <div class="rich-toolbar" id="richToolbar" style="display:none">
+        <button class="rt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button class="rt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button class="rt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+        <div class="rt-divider"></div>
+        <button class="rt-btn" data-cmd="insertUnorderedList" title="Bullet List">•≡</button>
+        <button class="rt-btn" data-cmd="insertOrderedList" title="Numbered List">1.</button>
+        <div class="rt-divider"></div>
+        <select class="rt-select" id="rtHeading">
+            <option value="">Normal</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="h4">Heading 4</option>
+        </select>
+        <div class="rt-divider"></div>
+        <button class="rt-btn" data-cmd="justifyLeft" title="Align Left">⫷</button>
+        <button class="rt-btn" data-cmd="justifyCenter" title="Align Center">⫿</button>
+        <button class="rt-btn" data-cmd="justifyRight" title="Align Right">⫸</button>
+        <div class="rt-divider"></div>
+        <input type="color" class="rt-color" id="rtColor" title="Text Color" value="#333333">
+        <button class="rt-btn" data-cmd="createLink" title="Insert Link">🔗</button>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Send to Email Modal -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal email-modal">
+            <div class="modal-header">
+                <h2>Send to email</h2>
+                <button class="modal-close" id="closeEmailModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="email-form">
+                    <div class="email-field">
+                        <label>To:</label>
+                        <input type="text" id="emailTo" placeholder="Enter email addresses (comma separated)" class="email-input">
+                    </div>
+                    <div class="email-field">
+                        <label>Cc:</label>
+                        <div class="email-cc-row">
+                            <input type="text" id="emailCc" placeholder="Enter email address" class="email-input">
+                            <button class="email-bcc-toggle" id="btnShowBcc">BCC</button>
+                        </div>
+                    </div>
+                    <div class="email-field email-bcc-field" id="bccField" style="display:none">
+                        <label>Bcc:</label>
+                        <input type="text" id="emailBcc" placeholder="Enter email address" class="email-input">
+                    </div>
+                    <div class="email-field">
+                        <textarea id="emailMessage" class="email-message" placeholder="Add a message (optional)" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="email-preview">
+                    <div class="email-preview-card">
+                        <div class="email-preview-thumb" id="emailPreviewThumb"></div>
+                        <div class="email-preview-info">
+                            <strong id="emailPreviewTitle">Newsletter Title</strong>
+                            <small>Built with ArtiKraft</small>
+                            <small id="emailPreviewMeta"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="email-footer">
+                    <label class="email-link-option"><input type="checkbox" id="emailAsLink" checked> Include as HTML attachment</label>
+                    <div class="email-actions">
+                        <button class="btn-email-send" id="btnSendEmail">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+                            Send
+                        </button>
+                        <button class="btn-email-test" id="btnTestEmail">Send test email</button>
+                        <button class="btn-email-cancel" id="btnCancelEmail">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for load -->
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+
+    <!-- Auto-Generate Modal -->
+    <div class="modal-overlay" id="autoGenModal">
+        <div class="modal autogen-modal">
+            <div class="modal-header">
+                <h2>Auto-Generate Newsletter</h2>
+                <button class="modal-close" id="closeAutoGenModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="autogen-desc">Paste your raw content below — bullet points, paragraphs, stats, quotes, milestones — and ArtiKraft will intelligently structure it into newsletter blocks.</p>
+                <div class="autogen-format-hint">
+                    <strong>Tips for best results:</strong>
+                    <ul>
+                        <li><code>## Heading</code> → Section Header</li>
+                        <li><code>KPI: 95% Adoption Rate (+12%)</code> → KPI Card</li>
+                        <li><code>> "Quote text" — Author</code> → Quote Block</li>
+                        <li><code>⭐ Story Title: description</code> → Success Story</li>
+                        <li><code>Jan 2026: Milestone achieved</code> → Timeline Item</li>
+                        <li><code>💡 Callout: message</code> → Callout Box</li>
+                        <li>Plain paragraphs → Text Blocks</li>
+                    </ul>
+                </div>
+                <textarea id="autoGenInput" class="autogen-textarea" rows="16" placeholder="Paste your raw newsletter content here...
+
+## AI Adoption Highlights
+
+KPI: 95% Adoption Rate (+12%)
+KPI: 23 Teams Onboarded (+5)
+KPI: 1.2s Avg Response Time (-0.3s)
+
+> &quot;AI has transformed how we work&quot; — Team Lead
+
+⭐ Project Phoenix: Successfully delivered the new platform ahead of schedule, reducing deployment time by 40%.
+
+Jan 2026: Platform launch
+Feb 2026: First 100 users
+Mar 2026: Full rollout
+
+💡 Reminder: Submit your quarterly feedback by March 31st.
+
+The team also achieved several improvements in code quality..."></textarea>
+                <div class="autogen-actions">
+                    <label class="autogen-option"><input type="checkbox" id="autoGenHero" checked> Include Hero Banner</label>
+                    <label class="autogen-option"><input type="checkbox" id="autoGenEditorial"> Include Editorial</label>
+                    <label class="autogen-option"><input type="checkbox" id="autoGenFooter" checked> Include Footer</label>
+                    <button class="btn-start" id="btnRunAutoGen">Generate Newsletter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

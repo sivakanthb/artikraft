@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="quill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="100%" stop-color="#e0e7ff"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="120" height="120" rx="24" fill="url(#bg)"/>
+  <!-- Paper/page shape -->
+  <rect x="30" y="22" width="52" height="68" rx="4" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+  <line x1="38" y1="36" x2="68" y2="36" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="44" x2="74" y2="44" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="52" x2="70" y2="52" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="60" x2="62" y2="60" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="68" x2="58" y2="68" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Quill pen (diagonal, writing on the page) -->
+  <g transform="rotate(-40, 78, 72)">
+    <!-- Pen body -->
+    <path d="M78 30 L82 72 L78 80 L74 72 Z" fill="url(#quill)" opacity="0.95"/>
+    <!-- Pen tip / nib -->
+    <path d="M78 80 L80 88 L78 92 L76 88 Z" fill="#fbbf24"/>
+    <!-- Feather detail -->
+    <path d="M74 30 Q70 42 72 52" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+    <path d="M82 30 Q86 42 84 52" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+  </g>
+  <!-- Small "A" lettermark accent -->
+  <text x="90" y="108" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="rgba(255,255,255,0.7)" text-anchor="middle">A</text>
+</svg>
