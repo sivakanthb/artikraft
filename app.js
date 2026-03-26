@@ -1461,7 +1461,7 @@
     function saveToLocalStorage() {
         try {
             const data = {
-                version: 5,
+                version: 6,
                 blocks: state.blocks,
                 info: state.info,
                 theme: state.theme,
@@ -1478,7 +1478,7 @@
             if (!raw) return;
             const data = JSON.parse(raw);
             // Version check: clear stale data from old versions
-            if (!data.version || data.version < 5) {
+            if (!data.version || data.version < 6) {
                 localStorage.removeItem('artikraft-newsletter');
                 return;
             }
