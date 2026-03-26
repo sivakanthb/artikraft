@@ -223,6 +223,24 @@
             year: new Date().getFullYear().toString(),
             builtBy: 'Sivakanth Badigenchala',
             links: [{ label: 'Share Feedback', url: '#' }]
+        }),
+        'footer-minimal': () => ({
+            type: 'footer-minimal',
+            text: '© ' + new Date().getFullYear() + ' Your Newsletter. All rights reserved.',
+            builtBy: 'Sivakanth Badigenchala'
+        }),
+        'footer-social': () => ({
+            type: 'footer-social',
+            appName: 'Newsletter',
+            tagline: 'Stay connected with us',
+            year: new Date().getFullYear().toString(),
+            builtBy: 'Sivakanth Badigenchala',
+            socials: [
+                { icon: '🔗', label: 'LinkedIn', url: '#' },
+                { icon: '🐦', label: 'Twitter', url: '#' },
+                { icon: '📧', label: 'Email', url: '#' },
+                { icon: '🌐', label: 'Website', url: '#' }
+            ]
         })
     };
 
@@ -348,6 +366,7 @@
     // ============ Init ============
     function init() {
         loadBuilderTheme();
+        loadCustomThemes();
         renderThemes();
         renderTemplates();
         bindEvents();
@@ -415,6 +434,34 @@
         canvas.style.background = c.bg;
     }
 
+    function saveCustomTheme() {
+        const name = prompt('Theme name:');
+        if (!name || !name.trim()) return;
+        const id = 'custom-' + name.trim().toLowerCase().replace(/\s+/g, '-');
+        const c = state.customColors;
+        THEMES[id] = {
+            name: name.trim(),
+            primary: c.primary, accent: c.accent,
+            bg: c.bg, text: c.text, cardBg: c.cardBg,
+            gradient: `linear-gradient(135deg, ${c.primary}, ${c.accent})`,
+            custom: true
+        };
+        // Save custom themes to localStorage
+        const customThemes = JSON.parse(localStorage.getItem('artikraft-custom-themes') || '{}');
+        customThemes[id] = THEMES[id];
+        localStorage.setItem('artikraft-custom-themes', JSON.stringify(customThemes));
+        renderThemes();
+        applyTheme(id);
+        toast(`Theme "${name.trim()}" saved!`, 'success');
+    }
+
+    function loadCustomThemes() {
+        try {
+            const custom = JSON.parse(localStorage.getItem('artikraft-custom-themes') || '{}');
+            Object.entries(custom).forEach(([id, theme]) => { THEMES[id] = theme; });
+        } catch (e) {}
+    }
+
     // ============ Template Rendering ============
     function renderTemplates() {
         const grid = $('#templateGrid');
@@ -428,13 +475,87 @@
                     <h4>${t.name}</h4>
                     <p>${t.desc}</p>
                 </div>
+                <div class="template-actions">
+                    <button class="template-preview-btn" title="Preview">👁</button>
+                    <button class="template-apply-btn">Apply</button>
+                </div>
             `;
+            card.querySelector('.template-apply-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadTemplate(t);
+                closeModal('templateModal');
+            });
+            card.querySelector('.template-preview-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                previewTemplate(t);
+            });
             card.addEventListener('click', () => {
                 loadTemplate(t);
                 closeModal('templateModal');
             });
             grid.appendChild(card);
         });
+    }
+
+    function previewTemplate(template) {
+        // Generate a preview by temporarily building the template
+        const savedBlocks = JSON.parse(JSON.stringify(state.blocks));
+        const savedColors = { ...state.customColors };
+        const savedTheme = state.theme;
+        
+        const previewBlocks = [];
+        const t = template.theme ? THEMES[template.theme] : null;
+        const c = t ? { primary: t.primary, accent: t.accent, bg: t.bg, text: t.text, cardBg: t.cardBg } : savedColors;
+        
+        template.blocks.forEach(type => {
+            if (BLOCK_DEFAULTS[type]) {
+                const b = BLOCK_DEFAULTS[type]();
+                b.id = 'preview-' + Math.random().toString(36).substr(2, 6);
+                previewBlocks.push(b);
+            }
+        });
+
+        // Build preview HTML
+        const f = state.fonts;
+        let previewHTML = `<div style="max-width:600px;margin:0 auto;background:${c.bg};font-family:${f.body};font-size:${Math.round(f.baseSize * 0.75)}px;color:${c.text};transform:scale(1);border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3)">`;
+        previewBlocks.forEach(b => {
+            // Temporarily set customColors for getBlockHTML
+            state.customColors = c;
+            let html = getBlockHTML(b);
+            html = html.replace(/contenteditable="true"/g, '');
+            html = html.replace(/data-field="[^"]*"/g, '');
+            html = html.replace(/data-placeholder="[^"]*"/g, '');
+            previewHTML += html;
+        });
+        previewHTML += '</div>';
+        
+        // Restore state
+        state.customColors = savedColors;
+        state.theme = savedTheme;
+
+        // Show in preview modal
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay show template-preview-overlay';
+        overlay.innerHTML = `<div class="modal template-preview-modal">
+            <div class="modal-header">
+                <h2>${template.name} — Preview</h2>
+                <button class="modal-close template-preview-close">✕</button>
+            </div>
+            <div class="modal-body template-preview-body">${previewHTML}</div>
+            <div class="template-preview-footer">
+                <button class="btn-start template-preview-apply">Apply This Template</button>
+                <button class="btn-start btn-secondary template-preview-back">Back to Templates</button>
+            </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('.template-preview-close').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('.template-preview-back').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('.template-preview-apply').addEventListener('click', () => {
+            overlay.remove();
+            loadTemplate(template);
+            closeModal('templateModal');
+        });
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     }
 
     function loadTemplate(template) {
@@ -488,10 +609,12 @@
         wrapper.className = 'nl-block';
         wrapper.id = block.id;
         wrapper.dataset.index = index;
+        wrapper.draggable = true;
         if (state.selectedBlockId === block.id) wrapper.classList.add('selected');
 
         // Block actions toolbar
         wrapper.innerHTML = `<div class="block-actions">
+            <span class="block-type-label">${block.type.replace(/-/g, ' ')}</span>
             <button class="block-action-btn" data-action="moveUp" title="Move up">↑</button>
             <button class="block-action-btn" data-action="moveDown" title="Move down">↓</button>
             <button class="block-action-btn" data-action="duplicate" title="Duplicate">⧉</button>
@@ -524,6 +647,19 @@
             editable.addEventListener('focus', () => {
                 showRichToolbar(editable);
             });
+        });
+
+        // Canvas drag-reorder
+        wrapper.addEventListener('dragstart', (e) => {
+            if (e.target.closest('[contenteditable]')) { e.preventDefault(); return; }
+            e.dataTransfer.setData('text/block-reorder', block.id);
+            e.dataTransfer.effectAllowed = 'move';
+            wrapper.classList.add('dragging');
+            setTimeout(() => wrapper.style.opacity = '0.4', 0);
+        });
+        wrapper.addEventListener('dragend', () => {
+            wrapper.classList.remove('dragging');
+            wrapper.style.opacity = '';
         });
 
         return wrapper;
@@ -706,6 +842,29 @@
                     </div>
                 </div>`;
 
+            case 'footer-minimal':
+                return `<div class="nl-footer nl-footer-minimal">
+                    <span contenteditable="true" data-field="text">${esc(b.text || '')}</span>
+                    <span class="footer-dot">·</span>
+                    <span>Built by <a href="#" class="footer-author">${esc(b.builtBy || '')}</a></span>
+                </div>`;
+
+            case 'footer-social':
+                const socialLinks = (b.socials || []).map(s =>
+                    `<a href="${esc(s.url || '#')}" class="social-link" title="${esc(s.label)}">${s.icon}</a>`
+                ).join(' ');
+                return `<div class="nl-footer nl-footer-social">
+                    <div class="footer-social-icons">${socialLinks}</div>
+                    <div class="footer-top">
+                        <span class="footer-copy">© ${esc(b.year || new Date().getFullYear().toString())} ${esc(b.appName || 'Newsletter')}</span>
+                        <span class="footer-dot">·</span>
+                        <span class="footer-tagline" contenteditable="true" data-field="tagline">${esc(b.tagline || '')}</span>
+                    </div>
+                    <div class="footer-bottom">
+                        <span>Built by <a href="#" class="footer-author">${esc(b.builtBy || '')}</a></span>
+                    </div>
+                </div>`;
+
             default:
                 return `<div style="padding:20px;color:#999">Unknown block type: ${b.type}</div>`;
         }
@@ -732,7 +891,20 @@
             e.preventDefault();
             dz.classList.remove('active');
             const blockType = e.dataTransfer.getData('text/block-type');
-            if (blockType) {
+            const reorderId = e.dataTransfer.getData('text/block-reorder');
+            if (reorderId) {
+                // Reorder existing block
+                const fromIdx = state.blocks.findIndex(b => b.id === reorderId);
+                if (fromIdx === -1) return;
+                saveUndo();
+                const [moved] = state.blocks.splice(fromIdx, 1);
+                let toIdx = parseInt(dz.dataset.dropIndex);
+                if (fromIdx < toIdx) toIdx--;
+                state.blocks.splice(toIdx, 0, moved);
+                renderCanvas();
+                selectBlock(moved.id);
+                toast('Block moved', 'info');
+            } else if (blockType) {
                 addBlock(blockType, parseInt(dz.dataset.dropIndex));
             }
         });
@@ -793,6 +965,45 @@
     function selectBlock(blockId) {
         state.selectedBlockId = blockId;
         $$('.nl-block').forEach(el => el.classList.toggle('selected', el.id === blockId));
+    }
+
+    // ============ Image Handling ============
+    function handleImageDrop(file, evt) {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            // If dropped on a specific block, try to set its image
+            if (evt) {
+                const blockEl = evt.target.closest('.nl-block');
+                if (blockEl) {
+                    const block = state.blocks.find(b => b.id === blockEl.id);
+                    if (block) {
+                        if (block.type === 'hero') { block.bgImage = dataUrl; }
+                        else if (block.type === 'image-text') { block.imageUrl = dataUrl; }
+                        else { addImageTextBlock(dataUrl); return; }
+                        renderCanvas();
+                        toast('Image added!', 'success');
+                        return;
+                    }
+                }
+            }
+            // Otherwise add a new image-text block
+            addImageTextBlock(dataUrl);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function addImageTextBlock(dataUrl) {
+        saveUndo();
+        const block = BLOCK_DEFAULTS['image-text']();
+        block.id = nextId();
+        block.imageUrl = dataUrl;
+        block.title = 'Image Title';
+        state.blocks.push(block);
+        renderCanvas();
+        selectBlock(block.id);
+        toast('Image block added!', 'success');
     }
 
     // ============ Sync Editable Content ============
@@ -885,6 +1096,7 @@
             case 'html-sharepoint': downloadSharePointHTML(); break;
             case 'html-email': downloadEmailHTML(); break;
             case 'pdf': downloadAsPDF(); break;
+            case 'png': downloadAsImage(); break;
             case 'clipboard': copyHTMLToClipboard(); break;
             case 'json': downloadJSON(); break;
         }
@@ -981,6 +1193,10 @@
             .nl-footer .footer-bottom { font-size: 0.8em; color: #aaa; }
             .nl-footer .footer-author { color: ${c.primary}; text-decoration: none; font-weight: 600; }
             .nl-footer .footer-bottom a { color: ${c.accent}; text-decoration: none; margin: 0 2px; }
+            .nl-footer-minimal { padding: 16px 40px; text-align: center; font-size: 0.8em; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
+            .nl-footer-social { text-align: center; }
+            .footer-social-icons { display: flex; justify-content: center; gap: 12px; margin-bottom: 10px; }
+            .social-link { font-size: 1.3em; text-decoration: none; }
         `;
 
         if (mode === 'email') {
@@ -1368,8 +1584,31 @@
         canvas.addEventListener('dragover', (e) => e.preventDefault());
         canvas.addEventListener('drop', (e) => {
             e.preventDefault();
+            // Handle image drop onto canvas
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    handleImageDrop(file, e);
+                    return;
+                }
+            }
             const blockType = e.dataTransfer.getData('text/block-type');
             if (blockType) addBlock(blockType);
+        });
+
+        // Paste image from clipboard
+        document.addEventListener('paste', (e) => {
+            if (e.target.closest('[contenteditable]') || e.target.closest('input') || e.target.closest('textarea')) return;
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) handleImageDrop(file);
+                    break;
+                }
+            }
         });
 
         // Top bar buttons
@@ -1391,6 +1630,7 @@
         $('#btnSave').addEventListener('click', saveNewsletter);
         $('#btnLoad').addEventListener('click', () => $('#fileInput').click());
         $('#btnThemeToggle').addEventListener('click', toggleBuilderTheme);
+        $('#btnSaveTheme').addEventListener('click', saveCustomTheme);
         $('#fileInput').addEventListener('change', (e) => {
             if (e.target.files[0]) loadNewsletter(e.target.files[0]);
             e.target.value = '';
@@ -1463,6 +1703,39 @@
             if (e.target === e.currentTarget) closeModal('autoGenModal');
         });
         $('#btnRunAutoGen').addEventListener('click', autoGenerateFromRaw);
+
+        // Version history
+        $('#btnVersions').addEventListener('click', () => { renderVersionList(); openModal('versionModal'); });
+        $('#closeVersionModal').addEventListener('click', () => closeModal('versionModal'));
+        $('#versionModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('versionModal'); });
+        $('#btnSaveVersion').addEventListener('click', saveVersion);
+
+        // Import from URL
+        $('#btnImportUrl').addEventListener('click', () => {
+            $('#importUrlInput').value = '';
+            $('#importUrlText').value = '';
+            $('#importUrlContent').style.display = 'none';
+            $('#btnImportUrlGenerate').style.display = 'none';
+            openModal('importUrlModal');
+        });
+        $('#closeImportUrlModal').addEventListener('click', () => closeModal('importUrlModal'));
+        $('#importUrlModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal('importUrlModal'); });
+        $('#btnFetchUrl').addEventListener('click', fetchUrlContent);
+        $('#btnImportUrlGenerate').addEventListener('click', importUrlGenerate);
+
+        // Responsive preview
+        $$('.resp-btn').forEach(btn => {
+            btn.addEventListener('click', () => setDevicePreview(btn.dataset.device));
+        });
+
+        // Background patterns
+        $$('.pattern-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                $$('.pattern-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                applyBackgroundPattern(swatch.dataset.pattern);
+            });
+        });
 
         // Sidebar toggles
         $('#toggleLeft').addEventListener('click', () => {
@@ -1824,6 +2097,237 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // ============ Version History ============
+    function saveVersion() {
+        const versions = JSON.parse(localStorage.getItem('artikraft-versions') || '[]');
+        const snapshot = {
+            id: Date.now(),
+            timestamp: new Date().toLocaleString(),
+            title: state.info.title || 'Untitled',
+            blockCount: state.blocks.length,
+            data: {
+                blocks: state.blocks,
+                info: state.info,
+                theme: state.theme,
+                customColors: state.customColors,
+                fonts: state.fonts
+            }
+        };
+        versions.unshift(snapshot);
+        if (versions.length > 20) versions.pop();
+        localStorage.setItem('artikraft-versions', JSON.stringify(versions));
+        renderVersionList();
+        toast('Version saved!', 'success');
+    }
+
+    function renderVersionList() {
+        const list = $('#versionList');
+        const versions = JSON.parse(localStorage.getItem('artikraft-versions') || '[]');
+        if (versions.length === 0) {
+            list.innerHTML = '<p class="version-empty">No saved versions yet. Click "Save Version" to create a snapshot.</p>';
+            return;
+        }
+        list.innerHTML = versions.map(v => `
+            <div class="version-item" data-vid="${v.id}">
+                <div class="version-info">
+                    <strong>${esc(v.title)}</strong>
+                    <small>${v.timestamp} · ${v.blockCount} blocks</small>
+                </div>
+                <div class="version-btns">
+                    <button class="version-restore" data-vid="${v.id}">Restore</button>
+                    <button class="version-delete" data-vid="${v.id}">✕</button>
+                </div>
+            </div>
+        `).join('');
+        list.querySelectorAll('.version-restore').forEach(btn => {
+            btn.addEventListener('click', () => restoreVersion(parseInt(btn.dataset.vid)));
+        });
+        list.querySelectorAll('.version-delete').forEach(btn => {
+            btn.addEventListener('click', () => deleteVersion(parseInt(btn.dataset.vid)));
+        });
+    }
+
+    function restoreVersion(id) {
+        const versions = JSON.parse(localStorage.getItem('artikraft-versions') || '[]');
+        const v = versions.find(v => v.id === id);
+        if (!v) return;
+        saveUndo();
+        state.blocks = v.data.blocks;
+        state.info = v.data.info || state.info;
+        state.customColors = v.data.customColors || state.customColors;
+        state.fonts = v.data.fonts || state.fonts;
+        if (v.data.theme) applyTheme(v.data.theme);
+        $('#newsletterTitle').value = state.info.title || '';
+        $('#infoEdition').value = state.info.edition || '';
+        $('#infoQuarter').value = state.info.quarter || '';
+        $('#infoOrg').value = state.info.org || '';
+        renderCanvas();
+        closeModal('versionModal');
+        toast('Version restored!', 'success');
+    }
+
+    function deleteVersion(id) {
+        let versions = JSON.parse(localStorage.getItem('artikraft-versions') || '[]');
+        versions = versions.filter(v => v.id !== id);
+        localStorage.setItem('artikraft-versions', JSON.stringify(versions));
+        renderVersionList();
+        toast('Version deleted', 'info');
+    }
+
+    // ============ Responsive Preview ============
+    function setDevicePreview(device) {
+        const widths = { desktop: 800, tablet: 480, mobile: 375 };
+        canvas.style.width = widths[device] + 'px';
+        $$('.resp-btn').forEach(b => b.classList.toggle('active', b.dataset.device === device));
+    }
+
+    // ============ Image Export ============
+    function downloadAsImage() {
+        toast('Rendering image...', 'info');
+        const html = generateCleanHTML('standalone');
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;left:-9999px;width:800px;height:2000px;border:none';
+        document.body.appendChild(iframe);
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(html);
+        iframe.contentDocument.close();
+
+        iframe.onload = () => {
+            setTimeout(() => {
+                try {
+                    const body = iframe.contentDocument.body;
+                    const newsletter = iframe.contentDocument.querySelector('.newsletter') || body;
+                    // Use canvas-based rendering
+                    htmlToCanvas(newsletter).then(dataUrl => {
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = sanitizeFilename(state.info.title) + '.png';
+                        a.click();
+                        document.body.removeChild(iframe);
+                        toast('Image downloaded!', 'success');
+                    }).catch(() => {
+                        // Fallback: open print dialog
+                        document.body.removeChild(iframe);
+                        downloadAsPDF();
+                    });
+                } catch (e) {
+                    document.body.removeChild(iframe);
+                    downloadAsPDF();
+                }
+            }, 1000);
+        };
+    }
+
+    function htmlToCanvas(element) {
+        return new Promise((resolve, reject) => {
+            try {
+                const rect = element.getBoundingClientRect();
+                const canvasEl = document.createElement('canvas');
+                const scale = 2;
+                canvasEl.width = rect.width * scale;
+                canvasEl.height = rect.height * scale;
+                const ctx = canvasEl.getContext('2d');
+                ctx.scale(scale, scale);
+
+                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
+                    <foreignObject width="100%" height="100%">
+                        <div xmlns="http://www.w3.org/1999/xhtml">${element.outerHTML}</div>
+                    </foreignObject>
+                </svg>`;
+
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvasEl.toDataURL('image/png'));
+                };
+                img.onerror = reject;
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+            } catch (e) { reject(e); }
+        });
+    }
+
+    // ============ Import from URL ============
+    function fetchUrlContent() {
+        const url = $('#importUrlInput').value.trim();
+        if (!url) { toast('Please enter a URL', 'error'); return; }
+        
+        // Validate URL format
+        try { new URL(url); } catch (e) { toast('Invalid URL format', 'error'); return; }
+
+        toast('Fetching content...', 'info');
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        
+        fetch(proxyUrl)
+            .then(r => {
+                if (!r.ok) throw new Error('Failed to fetch');
+                return r.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                // Extract main content
+                const selectors = ['article', 'main', '.content', '.post-content', '.entry-content', '#content'];
+                let content = null;
+                for (const sel of selectors) {
+                    content = doc.querySelector(sel);
+                    if (content) break;
+                }
+                if (!content) content = doc.body;
+                
+                // Clean up: remove scripts, styles, nav, footer
+                content.querySelectorAll('script,style,nav,footer,iframe,form,aside,.ad,.ads,.sidebar').forEach(el => el.remove());
+                
+                const text = content.innerText || content.textContent || '';
+                const cleaned = text.replace(/\n{3,}/g, '\n\n').trim();
+                
+                if (!cleaned) { toast('No readable content found', 'error'); return; }
+                
+                $('#importUrlText').value = cleaned;
+                $('#importUrlContent').style.display = 'block';
+                $('#btnImportUrlGenerate').style.display = 'inline-flex';
+                toast('Content extracted! Review and click Generate.', 'success');
+            })
+            .catch(() => {
+                toast('Could not fetch URL. Try copying the content manually into Auto-Generate.', 'error');
+            });
+    }
+
+    function importUrlGenerate() {
+        const text = $('#importUrlText').value.trim();
+        if (!text) { toast('No content to generate from', 'error'); return; }
+        closeModal('importUrlModal');
+        // Reuse auto-generate logic
+        $('#autoGenInput').value = text;
+        openModal('autoGenModal');
+        toast('Content loaded! Click Generate Newsletter to proceed.', 'info');
+    }
+
+    // ============ Background Pattern ============
+    function applyBackgroundPattern(pattern) {
+        const patterns = {
+            'none': 'none',
+            'dots': 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)',
+            'lines': 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0,0,0,0.04) 20px, rgba(0,0,0,0.04) 21px)',
+            'diagonal': 'repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(0,0,0,0.03) 14px, rgba(0,0,0,0.03) 15px)',
+            'grid': 'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
+            'gradient-subtle': `linear-gradient(135deg, ${state.customColors.bg}, ${lightenColor(state.customColors.primary, 0.92)})`
+        };
+        canvas.style.backgroundImage = patterns[pattern] || 'none';
+        if (pattern === 'dots') canvas.style.backgroundSize = '20px 20px';
+        else if (pattern === 'grid') canvas.style.backgroundSize = '24px 24px';
+        else canvas.style.backgroundSize = '';
+        state.bgPattern = pattern;
+        saveToLocalStorage();
+    }
+
+    function lightenColor(hex, amount) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const r = Math.round(Math.min(255, ((num >> 16) & 0xFF) + (255 - ((num >> 16) & 0xFF)) * amount));
+        const g = Math.round(Math.min(255, ((num >> 8) & 0xFF) + (255 - ((num >> 8) & 0xFF)) * amount));
+        const b = Math.round(Math.min(255, (num & 0xFF) + (255 - (num & 0xFF)) * amount));
+        return `rgb(${r},${g},${b})`;
     }
 
     // ============ Boot ============

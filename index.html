@@ -31,6 +31,12 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 Preview
             </button>
+            <div class="topbar-divider"></div>
+            <div class="responsive-toggle">
+                <button class="topbar-btn resp-btn active" data-device="desktop" title="Desktop">🖥️</button>
+                <button class="topbar-btn resp-btn" data-device="tablet" title="Tablet">📱</button>
+                <button class="topbar-btn resp-btn" data-device="mobile" title="Mobile">📲</button>
+            </div>
         </div>
         <div class="topbar-right">
             <button class="topbar-btn" id="btnSave" title="Save newsletter">
@@ -44,6 +50,14 @@
             <button class="topbar-btn" id="btnAutoGen" title="Auto-generate from raw data">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 Auto-Generate
+            </button>
+            <button class="topbar-btn" id="btnImportUrl" title="Import content from URL">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                Import URL
+            </button>
+            <button class="topbar-btn" id="btnVersions" title="Version history">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                Versions
             </button>
             <div class="topbar-divider"></div>
             <button class="topbar-btn theme-toggle-btn" id="btnThemeToggle" title="Toggle light/dark mode">
@@ -79,6 +93,7 @@
                 <div class="export-menu" id="exportMenu">
                     <button class="export-option" data-format="html-standalone">📄 Standalone HTML</button>
                     <button class="export-option" data-format="pdf">📃 Download as PDF</button>
+                    <button class="export-option" data-format="png">🖼️ Download as Image</button>
                     <button class="export-option" data-format="html-sharepoint">🏢 SharePoint-Ready HTML</button>
                     <button class="export-option" data-format="html-email">📧 Email-Safe HTML</button>
                     <button class="export-option" data-format="clipboard">📋 Copy HTML to Clipboard</button>
@@ -206,11 +221,19 @@
                     </div>
                 </div>
                 <div class="sidebar-section">
-                    <h4 class="section-label">Footer</h4>
+                    <h4 class="section-label">Header & Footer</h4>
                     <div class="block-grid">
                         <div class="block-item" draggable="true" data-block="footer">
                             <div class="block-preview footer-preview"></div>
-                            <span>Footer</span>
+                            <span>Standard</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="footer-minimal">
+                            <div class="block-preview footer-min-preview"></div>
+                            <span>Minimal</span>
+                        </div>
+                        <div class="block-item" draggable="true" data-block="footer-social">
+                            <div class="block-preview footer-social-preview"></div>
+                            <span>Social Footer</span>
                         </div>
                     </div>
                 </div>
@@ -287,6 +310,7 @@
                         <label>Card BG</label>
                         <input type="color" id="colorCardBg" value="#F5F7FA">
                     </div>
+                    <button class="save-theme-btn" id="btnSaveTheme">💾 Save as Custom Theme</button>
                 </div>
                 <!-- Typography -->
                 <div class="sidebar-section">
@@ -329,6 +353,18 @@
                         <label>Base Size</label>
                         <input type="range" id="fontSize" min="12" max="20" value="16">
                         <span id="fontSizeVal">16px</span>
+                    </div>
+                </div>
+                <!-- Background Pattern -->
+                <div class="sidebar-section">
+                    <h4 class="section-label">Section Background</h4>
+                    <div class="pattern-grid" id="patternGrid">
+                        <div class="pattern-swatch active" data-pattern="none" title="None" style="background:#fff"></div>
+                        <div class="pattern-swatch" data-pattern="dots" title="Dots" style="background-image:radial-gradient(circle,#ddd 1px,transparent 1px);background-size:12px 12px"></div>
+                        <div class="pattern-swatch" data-pattern="lines" title="Lines" style="background-image:repeating-linear-gradient(0deg,transparent,transparent 10px,#eee 10px,#eee 11px)"></div>
+                        <div class="pattern-swatch" data-pattern="diagonal" title="Diagonal" style="background-image:repeating-linear-gradient(45deg,transparent,transparent 8px,#eee 8px,#eee 9px)"></div>
+                        <div class="pattern-swatch" data-pattern="grid" title="Grid" style="background-image:linear-gradient(#eee 1px,transparent 1px),linear-gradient(90deg,#eee 1px,transparent 1px);background-size:16px 16px"></div>
+                        <div class="pattern-swatch" data-pattern="gradient-subtle" title="Subtle Gradient" style="background:linear-gradient(135deg,#f5f7fa,#c3cfe2)"></div>
                     </div>
                 </div>
                 <!-- Newsletter Info -->
@@ -455,6 +491,49 @@
 
     <!-- Hidden file input for load -->
     <input type="file" id="fileInput" accept=".json" style="display:none">
+
+    <!-- Version History Modal -->
+    <div class="modal-overlay" id="versionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Version History</h2>
+                <button class="modal-close" id="closeVersionModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="versionList" class="version-list">
+                    <p class="version-empty">No saved versions yet. Click "Save Version" to create a snapshot.</p>
+                </div>
+                <div class="version-actions">
+                    <button class="btn-start" id="btnSaveVersion">📌 Save Current Version</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import URL Modal -->
+    <div class="modal-overlay" id="importUrlModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Import from URL</h2>
+                <button class="modal-close" id="closeImportUrlModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="autogen-desc">Paste a URL to extract text content and auto-generate newsletter blocks.</p>
+                <div class="email-field">
+                    <label>URL:</label>
+                    <input type="url" id="importUrlInput" placeholder="https://example.com/article" class="email-input">
+                </div>
+                <div class="email-field" id="importUrlContent" style="display:none">
+                    <label>Extracted Content:</label>
+                    <textarea id="importUrlText" class="autogen-textarea" rows="12" placeholder="Content will appear here..."></textarea>
+                </div>
+                <div class="version-actions">
+                    <button class="btn-start" id="btnFetchUrl">🔗 Fetch Content</button>
+                    <button class="btn-start" id="btnImportUrlGenerate" style="display:none">✨ Generate Newsletter</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Auto-Generate Modal -->
     <div class="modal-overlay" id="autoGenModal">
